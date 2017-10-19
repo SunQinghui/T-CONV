@@ -1,0 +1,4 @@
+THEANO_FLAGS=floatX=float32,device=gpu1,optimizer=fast_run  python ../Models/conn-global.py
+
+
+
