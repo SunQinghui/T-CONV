@@ -1,0 +1,5 @@
+fuel==0.2.0
+h5py==2.5.0
+Keras==2.1.5
+numpy==1.14.1
+tensorflow-gpu==1.11.0
