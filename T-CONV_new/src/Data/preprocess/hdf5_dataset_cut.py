@@ -11,10 +11,9 @@ import random
 taxi_id_dict = {}     #a map from taxiid->0,1,2,3,....
 origin_call_dict = {0: 0}  #a map caller -> 0,1,2,3...
 # Cuts of the test set minus 1 year
-
+csv.field_size_limit(2147483647)
 begin = 1372636853
 end = 1404172787
-
 random.seed(42)
 cuts = []
 for i in range(500):
@@ -66,6 +65,7 @@ def convert_test_taxis(input_directory, h5file):
             day_type[id] = ord(line[6][0]) - ord('A')
             missing_data[id] = line[7][0] == 'T'
             polyline = ast.literal_eval(line[8])
+	    print(polyline)
             latitude[id] = numpy.array([point[1] for point in polyline], dtype=numpy.float32)
             longitude[id] = numpy.array([point[0] for point in polyline], dtype=numpy.float32)
             id+=1
@@ -112,24 +112,24 @@ def convert_train_taxis(input_directory, h5file):
             if t_id%10000==0 and t_id!=0:
                 print >> sys.stderr, 'read : %d done' % t_id
             
-            time = int(line[5])
+            time = round(float(line[5]))
             polyline = ast.literal_eval(line[8])
             sel = False
             for ts in cuts:            
                 if time <= ts and time + 15 * (len(polyline) - 1) >= ts:
                     # keep it
                     sel = True
-                    n = (ts - time) / 15 + 1
+                    n = int((ts - time) / 15) + 1
                 
                     valid_trip_id[v_id] = line[0]
                     valid_call_type[v_id] = ord(line[1][0]) - ord('A')
                     valid_origin_call[v_id] = 0 if line[2]=='NA' or line[2]=='' else get_unique_origin_call(int(line[2]))
                     valid_origin_stand[v_id] = 0 if line[3]=='NA' or line[3]=='' else int(line[3])
-                    valid_taxi_id[v_id] = get_unique_taxi_id(int(line[4]))
+                    valid_taxi_id[v_id] = get_unique_taxi_id(round(float(line[4])))
                     valid_timestamp[v_id] = int(line[5])
                     valid_day_type[v_id] = ord(line[6][0]) - ord('A')
                     valid_missing_data[v_id] = line[7][0] == 'T'
-                    
+                   
                     valid_latitude[v_id] = numpy.array([point[1] for point in polyline[:n]], dtype=numpy.float32)
                     valid_longitude[v_id] = numpy.array([point[0] for point in polyline[:n]], dtype=numpy.float32)
                     valid_dest_latitude[v_id] = polyline[-1][1]
@@ -142,7 +142,7 @@ def convert_train_taxis(input_directory, h5file):
                 call_type[t_id] = ord(line[1][0]) - ord('A')
                 origin_call[t_id] = 0 if line[2]=='NA' or line[2]=='' else get_unique_origin_call(int(line[2]))
                 origin_stand[t_id] = 0 if line[3]=='NA' or line[3]=='' else int(line[3])
-                taxi_id[t_id] = get_unique_taxi_id(int(line[4]))
+                taxi_id[t_id] = get_unique_taxi_id(round(float(line[4])))
                 timestamp[t_id] = int(line[5])
                 day_type[t_id] = ord(line[6][0]) - ord('A')
                 missing_data[t_id] = line[7][0] == 'T'
@@ -177,11 +177,11 @@ def convert_stands(input_directory, h5file):
 
  
 
-def convert(input_file, test_file, save_file):
+def convert(input_file,save_file):
     h5file = h5py.File(save_file, 'w')
     convert_train_taxis(input_file, h5file) 
      
-    convert_test_taxis(test_file, h5file) 
+    #convert_test_taxis(test_file, h5file) 
     #convert_taxis(input_directory, h5file, 'test')
     #convert_stands(input_directory, h5file)
 
@@ -189,7 +189,5 @@ def convert(input_file, test_file, save_file):
     h5file.close()
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
-        print >> sys.stderr, 'Usage: %s input_file, test_file, save_file' % sys.argv[0]
-        sys.exit(1)
-    convert(sys.argv[1], sys.argv[2], sys.argv[3])
+   
+    convert(sys.argv[1], sys.argv[2])
